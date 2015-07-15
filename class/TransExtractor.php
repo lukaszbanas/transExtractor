@@ -9,6 +9,8 @@ class TransExtractor
 {
     private $urlPath = null;
 
+    private $secondUrlPath = null;
+
     private $iterator;
 
     private $logger;
@@ -51,7 +53,7 @@ class TransExtractor
     }
 
     /**
-     * @return null
+     * @return string
      */
     public function getUrlPath()
     {
@@ -67,6 +69,27 @@ class TransExtractor
             throw new \Exception('Selected dir not exists');
         }
         $this->urlPath = $urlPath;
+    }
+
+    /**
+     * @param null $urlPath
+     */
+    public function setSecondUrlPath($urlPath)
+    {
+        if(!empty($urlPath)) {
+            if(!is_dir($urlPath)) {
+                throw new \Exception('Selected dir not exists');
+            }
+            $this->secondUrlPath = $urlPath;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecondUrlPath()
+    {
+        return $this->secondUrlPath;
     }
 
     /**
@@ -103,7 +126,32 @@ class TransExtractor
             }
         }
 
-        foreach (self::getIterator($this->getUrlPath()) as $filename => $file) {
+        $firstTry = $this->searchTree(self::getIterator($this->getUrlPath()), $results, $filters, $searchExtensions);
+        if( !empty($firstTry)) {
+            $results = array_merge($results,$firstTry['items']);
+            $resultCount += $firstTry['count'];
+        }
+
+        if(!empty($this->getSecondUrlPath())) {
+            $secondTry = $this->searchTree(self::getIterator($this->getSecondUrlPath()), $results, $filters, $searchExtensions);
+            if( !empty($secondTry)) {
+                $results = array_merge($results,$secondTry['items']);
+                $resultCount += $secondTry['count'];
+            }
+        }
+
+        $this->getWriter()->insertAll( $results );
+        $this->getLogger()->addInfo($resultCount . ' matches found');
+        file_put_contents('trans/'.$this->generateName(),$this->getWriter());
+
+        echo('<p class="alert alert-success">Znaleziono ' . $resultCount . ' wyników</p>');
+    }
+
+    private function searchTree($path, $results, $filters, $searchExtensions)
+    {
+        $return = array();
+        $count = 0;
+        foreach ($path as $filename => $file) {
 
             if (in_array( strtolower( pathinfo($file, PATHINFO_EXTENSION) ), $searchExtensions)) {
                 $content = file_get_contents($filename);
@@ -113,19 +161,16 @@ class TransExtractor
                 foreach($matches as $matched) {
                     foreach($matched as $match) {
                         $_item = trim( str_replace("__(", '', $match) , "'\"");
-                        if ( !in_array($_item, $results) && !in_array($_item, $filters)) {
-                            $results[] = $_item;
-                            $resultCount++;
+                        if ( !in_array($_item, $return) && !in_array($_item, $results) && !in_array($_item, $filters)) {
+                            $return[] = array($_item, '');
+                            $count++;
                         }
                     }
                 }
             }
         }
-        $this->getWriter()->insertAll( $results );
-        $this->getLogger()->addInfo($resultCount . ' matches fount');
-        file_put_contents('trans/'.$this->generateName(),$this->getWriter());
 
-        echo('<p class="alert alert-success">Znaleziono ' . $resultCount . ' wyników</p>');
+        return array('items' => $return, 'count' => $count);
     }
 
     /**
@@ -161,10 +206,10 @@ class TransExtractor
                 }
             }
         }
-        if ($max > 0) {
+        if ($max >= 0) {
             return 'raport_' . ($max+1) . '.csv';
         } elseif (empty($test)) {
-            return 1;
+            return 'raport_0.csv';
         }
     }
 

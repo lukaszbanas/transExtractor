@@ -2,16 +2,19 @@
 include ( '../' . 'app.php' );
 
 $urlPath = '';
+$secondUrlPath = '';
 $translationFile = '';
 
 if(isset($_POST['process'])) {
 
     $urlPath = (isset($_POST['urlPath']) ? $_POST['urlPath'] : '');
+    $secondUrlPath = (isset($_POST['secondUrlPath']) ? $_POST['secondUrlPath'] : '');
     $translationFile = (isset($_POST['current']) ? $_POST['current'] : '');
-    
+
     try {
         $extractor = new TransExtractor();
         $extractor->setUrlPath($urlPath);
+        $extractor->setSecondUrlPath($secondUrlPath);
         $extractor->setInputCsv($translationFile);
 
         if(isset($_POST['process'])) {
@@ -46,7 +49,11 @@ if(isset($_POST['process'])) {
             <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                 <p class="input-group">
                     <label for="urlPath">Ścieżka do wyodrębnienia tłumaczeń: <code>../../tonatuszu/app/code/local/Tonatuszu/Wishlist</code></label>
-                    <input class="form-control" type="text" name="urlPath" id="urlPath" value="<?php echo $urlPath; ?>" />
+                    <input required="required" class="form-control" type="text" name="urlPath" id="urlPath" value="<?php echo $urlPath; ?>" />
+                </p>
+                <p class="input-group">
+                    <label for="secondUrlPath">Ścieżka do wyodrębnienia tłumaczeń (dodatkowa): <code>../../tonatuszu/app/code/local/Tonatuszu/Wishlist</code></label>
+                    <input class="form-control" type="text" name="secondUrlPath" id="secondUrlPath" value="<?php echo $secondUrlPath; ?>" />
                 </p>
                 <p class="input-group">
                     <label for="current">Ścieżka zawierająca aktualne tłumacznia: <code>../../tonatuszu/app/locale/pl_PL/Mage_Wishlist.csv</code>
