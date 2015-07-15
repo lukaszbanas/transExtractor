@@ -1,0 +1,16 @@
+{
+    "name": "lbanas/transextractor",
+    "description": "extracting translation from `__()` function",
+    "require": {
+        "monolog/monolog": "^1.15",
+        "league/csv": "^7.1.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "lukasz Banas",
+            "email": "lukaszbanas4@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
