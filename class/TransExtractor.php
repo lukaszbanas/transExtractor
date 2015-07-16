@@ -31,7 +31,7 @@ class TransExtractor
                 \Monolog\Logger::INFO)
         );
         $this->writer = \League\Csv\Writer::createFromFileObject(new \SplTempFileObject());
-        $this->writer->setDelimiter("\t");
+        $this->writer->setDelimiter(",");
         $this->writer->setNewline("\r\n");
         $this->writer->setEncodingFrom("utf-8");
     }
@@ -141,8 +141,19 @@ class TransExtractor
         }
 
         $this->getWriter()->insertAll( $results );
-        $this->getLogger()->addInfo($resultCount . ' matches found');
-        file_put_contents('trans/'.$this->generateName(),$this->getWriter());
+        $filename = $this->generateName();
+        file_put_contents('trans/'.$filename,$this->getWriter());
+
+        //log
+        $this->getLogger()->addInfo('Processing results: ' . $resultCount . ' saved at ' .$filename);
+        $this->getLogger()->addDebug('Input filepath: ' . $this->getUrlPath());
+        if(!empty($this->getSecondUrlPath())) {
+            $this->getLogger()->addDebug('Additionally loaded: ' . $this->getSecondUrlPath());
+        }
+        $this->getLogger()->addDebug('Filters count: ' . count($filters));
+        $this->getLogger()->addDebug('Result: ' . $resultCount . ' matches found');
+        $this->getLogger()->addDebug('saved as ' . $filename);
+
 
         echo('<p class="alert alert-success">Znaleziono ' . $resultCount . ' wyników</p>');
     }
@@ -162,7 +173,7 @@ class TransExtractor
                     foreach($matched as $match) {
                         $_item = trim( str_replace("__(", '', $match) , "'\"");
                         if ( !in_array($_item, $return) && !in_array($_item, $results) && !in_array($_item, $filters)) {
-                            $return[] = array($_item, '');
+                            $return[] = array( $_item, ' ');
                             $count++;
                         }
                     }

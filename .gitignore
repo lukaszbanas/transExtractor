@@ -1,3 +1,5 @@
 /.idea
 /web/raports/*.log
 /web/trans/*.csv
+/web/trans
+/web/raports
